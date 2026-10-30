@@ -1,0 +1,133 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+import Foundation
+import Combine
+import NovagramCallRecordingCore
+
+/// The toolbar menu's filter.
+public enum CallRecordingFilter: String, CaseIterable, Sendable {
+    case all
+    case video
+    case voice
+
+    public func includes(_ recording: CallRecording) -> Bool {
+        switch self {
+        case .all:
+            return true
+        case .video:
+            return recording.isVideo
+        case .voice:
+            return !recording.isVideo
+        }
+    }
+
+    public func title(_ strings: CallRecordingStrings) -> String {
+        switch self {
+        case .all:
+            return strings.filterAll
+        case .video:
+            return strings.filterVideo
+        case .voice:
+            return strings.filterVoice
+        }
+    }
+}
+
+/// The recordings of one calendar day, newest first.
+public struct CallRecordingDaySection: Identifiable, Equatable, Sendable {
+    public let day: Date
+    public var recordings: [CallRecording]
+
+    public var id: Date {
+        return self.day
+    }
+}
+
+/// The list's pure rules: day sections, filtering, the summary line and the row subtitle.
+public enum CallRecordingsListModel {
+    /// The recordings `filter` shows, grouped by calendar day, newest day and newest recording first.
+    public static func sections(for recordings: [CallRecording], filter: CallRecordingFilter, calendar: Calendar = .current) -> [CallRecordingDaySection] {
+        let visible = recordings.filter(filter.includes).sorted { lhs, rhs in
+            if lhs.date != rhs.date {
+                return lhs.date > rhs.date
+            }
+            return lhs.url.lastPathComponent > rhs.url.lastPathComponent
+        }
+        var result: [CallRecordingDaySection] = []
+        for recording in visible {
+            let day = calendar.startOfDay(for: recording.date)
+            if let last = result.last, last.day == day {
+                result[result.count - 1].recordings.append(recording)
+            } else {
+                result.append(CallRecordingDaySection(day: day, recordings: [recording]))
+            }
+        }
+        return result
+    }
+
+    /// "5 recordings · 2,6 MB", or the filter's empty text when it hides everything.
+    public static func summary(for visible: [CallRecording], filter: CallRecordingFilter, strings: CallRecordingStrings, sizeString: (Int64) -> String) -> String {
+        guard !visible.isEmpty else {
+            return strings.filterEmpty(filter == .video)
+        }
+        let totalSize = visible.reduce(Int64(0)) { $0 + $1.size }
+        return strings.summary(visible.count, sizeString(totalSize))
+    }
+
+    /// "Video call · 0:40 · 742,3 KB".
+    public static func subtitle(for recording: CallRecording, strings: CallRecordingStrings, durationString: (Double) -> String, sizeString: (Int64) -> String) -> String {
+        let kind = recording.isVideo ? strings.videoCall : strings.voiceCall
+        return "\(kind) · \(durationString(recording.duration)) · \(sizeString(recording.size))"
+    }
+
+    /// The Clear All question: every recording, or only those the filter shows.
+    public static func clearConfirmation(for visible: [CallRecording], filter: CallRecordingFilter, strings: CallRecordingStrings, sizeString: (Int64) -> String) -> String {
+        let size = sizeString(visible.reduce(Int64(0)) { $0 + $1.size })
+        switch filter {
+        case .all:
+            return strings.clearAllConfirm(visible.count, size)
+        case .video, .voice:
+            return strings.clearFilteredConfirm(visible.count, size, filter == .video)
+        }
+    }
+}
+
+/// The list's state: the recordings in the folder and the filter. Loads off the main thread.
+@MainActor
+public final class CallRecordingsListViewModel: ObservableObject {
+    public let storage: CallRecordingStorage
+    @Published public private(set) var recordings: [CallRecording] = []
+    @Published public private(set) var isLoaded = false
+    /// Kept for the screen's lifetime only.
+    @Published public var filter: CallRecordingFilter = .all
+
+    public init(storage: CallRecordingStorage) {
+        self.storage = storage
+    }
+
+    public var visibleRecordings: [CallRecording] {
+        return self.recordings.filter(self.filter.includes)
+    }
+
+    public func sections(calendar: Calendar = .current) -> [CallRecordingDaySection] {
+        return CallRecordingsListModel.sections(for: self.recordings, filter: self.filter, calendar: calendar)
+    }
+
+    /// Reads the folder again (call it after a recording is saved).
+    public func reload() async {
+        let storage = self.storage
+        let list = await Task.detached(priority: .userInitiated) {
+            storage.list()
+        }.value
+        self.recordings = list
+        self.isLoaded = true
+    }
+
+    /// Deletes the files and returns the ones that are gone; a file that could not be deleted stays in the list.
+    @discardableResult
+    public func delete(_ urls: [URL]) -> [URL] {
+        let deleted = self.storage.delete(urls)
+        let gone = Set(deleted)
+        self.recordings.removeAll { gone.contains($0.url) }
+        return deleted
+    }
+}
