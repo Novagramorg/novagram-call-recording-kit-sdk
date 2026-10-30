@@ -3,20 +3,17 @@ import Foundation
 
 /// The call recording switches, shared by both apps: same keys, in the `pro_messager` suite, all default off.
 ///
-/// The whole feature sits behind the hidden Developer switch "Call recording (beta)" (`novagram_dev_call_recording`,
-/// missing key = off). With it off ``isEnabled`` and ``isAutoEnabled`` are false; the user's own switches keep their
-/// values (``isUserEnabled``, ``isUserAutoEnabled``).
+/// Each switch is the feature itself: there is no second gate. Where an app shows the switches (a Developer section
+/// while the feature is unapproved, its normal section once approved) is the app's business.
 public struct CallRecordingSettings {
     /// The `UserDefaults` suite both apps use for Novagram settings.
     public static let suiteName = "pro_messager"
-    /// The user's "Call recording" switch.
+    /// The "Call recording" switch.
     public static let enabledKey = "novagram_call_recording"
-    /// The user's "Record every call automatically" switch.
+    /// The "Record every call automatically" switch.
     public static let autoKey = "novagram_call_recording_auto"
     /// Set once the first-recording consent alert was accepted.
     public static let warnedKey = "novagram_call_recording_warned"
-    /// The Developer switch "Call recording (beta)".
-    public static let developerFlagKey = "novagram_dev_call_recording"
 
     /// Posted by an app when a call changes a switch or saves a recording, so open settings screens refresh.
     public static let changedNotification = Notification.Name("NovagramCallRecordingChanged")
@@ -33,28 +30,8 @@ public struct CallRecordingSettings {
         self.init(defaults: UserDefaults(suiteName: CallRecordingSettings.suiteName) ?? .standard)
     }
 
-    /// The Developer switch. Missing key = off.
-    public var isDeveloperEnabled: Bool {
-        get {
-            return self.defaults.object(forKey: CallRecordingSettings.developerFlagKey) as? Bool ?? false
-        }
-        nonmutating set {
-            self.defaults.set(newValue, forKey: CallRecordingSettings.developerFlagKey)
-        }
-    }
-
-    /// What calls read: the Developer switch and the user's "Call recording" switch are both on.
+    /// "Call recording": calls show the Record control. Missing key = off.
     public var isEnabled: Bool {
-        return self.isDeveloperEnabled && self.isUserEnabled
-    }
-
-    /// "Record every call automatically", gated by the Developer switch. Only takes effect while ``isEnabled``.
-    public var isAutoEnabled: Bool {
-        return self.isDeveloperEnabled && self.isUserAutoEnabled
-    }
-
-    /// The user's "Call recording" switch as stored.
-    public var isUserEnabled: Bool {
         get {
             return self.defaults.bool(forKey: CallRecordingSettings.enabledKey)
         }
@@ -63,8 +40,8 @@ public struct CallRecordingSettings {
         }
     }
 
-    /// The user's "Record every call automatically" switch as stored.
-    public var isUserAutoEnabled: Bool {
+    /// "Record every call automatically". Only takes effect while ``isEnabled``. Missing key = off.
+    public var isAutoEnabled: Bool {
         get {
             return self.defaults.bool(forKey: CallRecordingSettings.autoKey)
         }

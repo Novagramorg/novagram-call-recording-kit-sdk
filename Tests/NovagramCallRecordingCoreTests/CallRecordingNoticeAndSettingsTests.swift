@@ -99,28 +99,27 @@ final class CallRecordingSettingsTests: XCTestCase {
         XCTAssertEqual(CallRecordingSettings.enabledKey, "novagram_call_recording")
         XCTAssertEqual(CallRecordingSettings.autoKey, "novagram_call_recording_auto")
         XCTAssertEqual(CallRecordingSettings.warnedKey, "novagram_call_recording_warned")
-        XCTAssertEqual(CallRecordingSettings.developerFlagKey, "novagram_dev_call_recording")
     }
 
     func testEverythingIsOffByDefault() {
         let settings = CallRecordingSettings(defaults: self.defaults)
-        XCTAssertFalse(settings.isDeveloperEnabled)
         XCTAssertFalse(settings.isEnabled)
         XCTAssertFalse(settings.isAutoEnabled)
         XCTAssertFalse(settings.wasWarned)
     }
 
-    func testDeveloperSwitchGatesTheUserSwitches() {
+    // One switch per feature: the stored key is what calls read, with no second gate.
+    func testSwitchesAreTheStoredKeys() {
         let settings = CallRecordingSettings(defaults: self.defaults)
-        settings.isUserEnabled = true
-        settings.isUserAutoEnabled = true
-        XCTAssertFalse(settings.isEnabled)
-        XCTAssertFalse(settings.isAutoEnabled)
-        XCTAssertTrue(settings.isUserEnabled, "the user's own value is kept")
-        settings.isDeveloperEnabled = true
+        settings.isEnabled = true
         XCTAssertTrue(settings.isEnabled)
+        XCTAssertFalse(settings.isAutoEnabled)
+        XCTAssertTrue(self.defaults.bool(forKey: "novagram_call_recording"))
+        settings.isAutoEnabled = true
         XCTAssertTrue(settings.isAutoEnabled)
-        XCTAssertEqual(self.defaults.object(forKey: "novagram_dev_call_recording") as? Bool, true)
+        XCTAssertTrue(self.defaults.bool(forKey: "novagram_call_recording_auto"))
+        settings.isEnabled = false
+        XCTAssertFalse(settings.isEnabled)
         settings.wasWarned = true
         XCTAssertTrue(self.defaults.bool(forKey: "novagram_call_recording_warned"))
     }

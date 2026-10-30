@@ -225,9 +225,8 @@ timeline's clock; push it whenever the call plays sound. The Mac keeps its own m
   `list()`, `delete(_:)`, `recoverInterrupted()`; `CallRecording` (`url`, `date`, `duration`, `isVideo`, `size`,
   `peerName`); `CallRecordingName` (`peerName(fromFileName:)`, `initials(of:)`, `colorIndex(of:count:)`).
 - `CallRecordingSettings`: keys `novagram_call_recording`, `novagram_call_recording_auto`,
-  `novagram_call_recording_warned`, `novagram_dev_call_recording` in the `pro_messager` suite, an injectable
-  `UserDefaults`, `isEnabled`, `isAutoEnabled`, `isUserEnabled`, `isUserAutoEnabled`, `isDeveloperEnabled`,
-  `wasWarned`, `changedNotification`.
+  `novagram_call_recording_warned` in the `pro_messager` suite, an injectable `UserDefaults`, `isEnabled` and
+  `isAutoEnabled` (read-write, each is its own key with no second gate), `wasWarned`, `changedNotification`.
 - `CallRecordingNoticePolicy`: `beginSending(callSessionId:isOneToOneUser:recorderDidStart:)`, `markDelivered`,
   `markFailed`, `forget`, `status`, `message(languageCode:)`, `failureMessage(languageCode:)`;
   `CallRecordingLanguage` (en, uz, ru, zh).
