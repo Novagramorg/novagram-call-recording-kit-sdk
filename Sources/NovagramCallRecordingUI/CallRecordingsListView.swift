@@ -35,6 +35,11 @@ public struct CallRecordingsListView: View {
         self.environment = environment
     }
 
+    #if os(iOS)
+    // The grouped-settings row padding of the iOS app's lists; SwiftUI's default is about 15 pt above and below.
+    private static let rowInsets = EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16)
+    #endif
+
     private var theme: CallRecordingTheme {
         return self.environment.theme
     }
@@ -202,6 +207,7 @@ public struct CallRecordingsListView: View {
             }
         }
         .listRowBackground(self.theme.card)
+        .listRowInsets(CallRecordingsListView.rowInsets)
         .listRowSeparatorTint(self.theme.separator)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
