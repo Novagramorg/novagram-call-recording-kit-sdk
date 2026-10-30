@@ -33,6 +33,9 @@ public struct CallRecordingTheme {
     public var freeTextFontSize: CGFloat
     /// Scale the sizes above with the system text size.
     public var followsDynamicType: Bool
+    /// The space between the screen edge and the cards (iOS; 16 is the system's inset-grouped margin). Telegram's
+    /// lists use 20.
+    public var listSideInset: CGFloat
 
     public init(
         background: Color = CallRecordingTheme.systemBackground,
@@ -48,7 +51,8 @@ public struct CallRecordingTheme {
         timeFontSize: CGFloat = 15,
         freeTextFontSize: CGFloat = 13,
         followsDynamicType: Bool = true,
-        freeText: Color? = nil
+        freeText: Color? = nil,
+        listSideInset: CGFloat = 16
     ) {
         self.background = background
         self.card = card
@@ -64,6 +68,7 @@ public struct CallRecordingTheme {
         self.timeFontSize = timeFontSize
         self.freeTextFontSize = freeTextFontSize
         self.followsDynamicType = followsDynamicType
+        self.listSideInset = listSideInset
     }
 
     /// The system appearance.

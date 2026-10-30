@@ -30,6 +30,13 @@ public struct CallRecordingUIEnvironment {
     /// when the host draws its own navigation bar (the iOS app's Telegram bar) and drives
     /// ``CallRecordingsListViewModel`` instead; the select-mode Share / Delete bar at the bottom stays.
     public var showsToolbar: Bool = true
+    /// The select-mode Share / Delete bar at the bottom (iOS). Turn it off when the host draws its own bar (the iOS
+    /// app's Telegram toolbar) and drives the selection through ``CallRecordingsListViewModel``: Share with
+    /// ``CallRecordingsListViewModel/selectedURLs``, Delete with ``CallRecordingsListViewModel/requestDeleteSelected()``.
+    public var showsSelectionBar: Bool = true
+    /// Asks the user before files are deleted (one row, the selection, Clear All). Gets the question and a closure
+    /// that deletes; call it only when the user confirms. When nil the list shows its own SwiftUI alert.
+    public var confirmDeletion: (@MainActor (_ text: String, _ confirm: @escaping @MainActor () -> Void) -> Void)?
 
     public init(
         languageCode: String = "en",

@@ -175,8 +175,32 @@ final class CallRecordingsListModelTests: XCTestCase {
         model.requestClearAll()
         XCTAssertEqual(clearAllRequests, 1)
         cancellable.cancel()
+        var deleteSelectedRequests = 0
+        let deleteCancellable = model.deleteSelectedRequests.sink { deleteSelectedRequests += 1 }
+        model.requestDeleteSelected()
+        XCTAssertEqual(deleteSelectedRequests, 1)
+        deleteCancellable.cancel()
         model.setSelecting(false)
         XCTAssertFalse(model.isSelecting)
         XCTAssertTrue(model.selection.isEmpty)
+    }
+
+    @MainActor
+    func testEnvironmentDefaultsKeepTheListsOwnBarAndAlert() {
+        var environment = CallRecordingUIEnvironment(onPlay: { _ in }, onShare: { _, _ in })
+        XCTAssertTrue(environment.showsToolbar)
+        XCTAssertTrue(environment.showsSelectionBar)
+        XCTAssertNil(environment.confirmDeletion)
+        XCTAssertEqual(environment.theme.listSideInset, 16)
+        var asked: [String] = []
+        environment.confirmDeletion = { text, confirm in
+            asked.append(text)
+            confirm()
+        }
+        environment.confirmDeletion?("Delete?") {
+            asked.append("deleted")
+        }
+        XCTAssertEqual(asked, ["Delete?", "deleted"])
+        XCTAssertEqual(CallRecordingTheme(listSideInset: 20).listSideInset, 20)
     }
 }

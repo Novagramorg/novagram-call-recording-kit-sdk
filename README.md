@@ -140,7 +140,8 @@ var environment = CallRecordingUIEnvironment(
         titleFontSize: listsFontSize, subtitleFontSize: floor(listsFontSize * 14 / 17),
         timeFontSize: floor(listsFontSize * 15 / 17), freeTextFontSize: floor(listsFontSize * 13 / 17),
         followsDynamicType: false,
-        freeText: Color(theme.list.freeTextColor)
+        freeText: Color(theme.list.freeTextColor),
+        listSideInset: 20
     ),
     isRecordingEnabled: CallRecordingSettings().isEnabled,
     onPlay: { recording in /* QuickLook or Telegram's player */ },
@@ -156,7 +157,14 @@ The view puts its title, menu and select-mode buttons into the navigation contai
 `ViewController` draws its own navigation bar, so the iOS app sets `environment.showsToolbar = false`, keeps one
 `CallRecordingsListViewModel` and drives it from its own bar buttons: `filter`, `setSelecting(_:)`,
 `toggleSelectAll()`, `allVisibleSelected`, `requestClearAll()` (the list shows the same confirmation as its own
-menu). The select-mode Share / Delete bar at the bottom stays in the view.
+menu). The app also draws Telegram's own select-mode toolbar and alerts: `environment.showsSelectionBar = false`
+(Share with `selectedURLs`, Delete with `requestDeleteSelected()`; give the hosting controller
+`additionalSafeAreaInsets.bottom` = toolbar height + home indicator so the rows scroll above it) and
+`environment.confirmDeletion = { text, confirm in /* textAlertController, then confirm() */ }`, used for one row, the
+selection and Clear All. `listSideInset` sets the cards' side margin with `contentMargins` on iOS 17+; on iOS 15-16 the
+host widens `additionalSafeAreaInsets.left/right` by the difference from 16. On iOS 15 the List's own background is not
+hidable from SwiftUI: clear `UITableView`/`UICollectionView` through `appearance(whenContainedInInstancesOf:)` with a
+`UIHostingController` subclass. Rows draw their own separators in the theme's colour (live on a theme change).
 
 Notice: keep one `CallRecordingNoticePolicy` (main thread). After `start` returns, call
 `beginSending(callSessionId:isOneToOneUser:recorderDidStart:)`; when it is true, send
@@ -235,11 +243,12 @@ timeline's clock; push it whenever the call plays sound. The Mac keeps its own m
 
 - `CallRecordingsListView(storage:environment:)`, `CallRecordingsListView(model:environment:)`.
 - `CallRecordingUIEnvironment`: `theme`, `strings`, `isRecordingEnabled`, `dayHeader`, `sizeString`, `timeString`,
-  `durationString`, `spokenDuration`, `onPlay`, `onShare`, `showsToolbar`.
-- `CallRecordingTheme` (colours, avatar gradients, font sizes, `followsDynamicType`), `CallRecordingStrings`
+  `durationString`, `spokenDuration`, `onPlay`, `onShare`, `showsToolbar`, `showsSelectionBar`, `confirmDeletion`.
+- `CallRecordingTheme` (colours, avatar gradients, font sizes, `followsDynamicType`, `listSideInset`), `CallRecordingStrings`
   (en/uz/ru/zh built in, every value overridable), `CallRecordingFormatters`.
 - `CallRecordingsListViewModel` (`reload()`, `delete(_:)`, `filter`, `isSelecting`, `selection`, `setSelecting(_:)`,
-  `selectedURLs`, `allVisibleSelected`, `toggleSelectAll()`, `requestClearAll()`), `CallRecordingsListModel` (`sections`,
+  `selectedURLs`, `allVisibleSelected`, `toggleSelectAll()`, `requestClearAll()`, `requestDeleteSelected()`),
+  `CallRecordingsListModel` (`sections`,
   `summary`, `subtitle`, `clearConfirmation`), `CallRecordingFilter`, `CallRecordingDaySection`.
 
 ## Threading

@@ -115,6 +115,8 @@ public final class CallRecordingsListViewModel: ObservableObject {
 
     // requestClearAll(): the list asks for confirmation, then deletes.
     let clearAllRequests = PassthroughSubject<Void, Never>()
+    // requestDeleteSelected(): the same, for the selection.
+    let deleteSelectedRequests = PassthroughSubject<Void, Never>()
 
     public init(storage: CallRecordingStorage) {
         self.storage = storage
@@ -149,6 +151,12 @@ public final class CallRecordingsListViewModel: ObservableObject {
     /// The menu's Clear All from a host-drawn navigation bar: the list shows the same confirmation as its own menu.
     public func requestClearAll() {
         self.clearAllRequests.send(())
+    }
+
+    /// Delete from a host-drawn selection bar (``CallRecordingUIEnvironment/showsSelectionBar`` off): the list asks
+    /// for confirmation, deletes the selected files and leaves select mode when nothing is left.
+    public func requestDeleteSelected() {
+        self.deleteSelectedRequests.send(())
     }
 
     public var visibleRecordings: [CallRecording] {

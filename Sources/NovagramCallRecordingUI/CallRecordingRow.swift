@@ -9,6 +9,7 @@ import NovagramCallRecordingCore
 struct CallRecordingRow: View {
     static let avatarSize: CGFloat = 40
     static let minHeight: CGFloat = 44
+    static let textSpacing: CGFloat = 12
 
     let recording: CallRecording
     let environment: CallRecordingUIEnvironment
@@ -22,7 +23,7 @@ struct CallRecordingRow: View {
         let time = self.environment.timeString(self.recording.date)
         let subtitle = CallRecordingsListModel.subtitle(for: self.recording, strings: self.environment.strings, durationString: self.environment.durationString, sizeString: self.environment.sizeString)
         let timeFont = Font.system(size: theme.timeFontSize * self.fontScale).monospacedDigit()
-        HStack(alignment: self.isLarge ? .top : .center, spacing: 12) {
+        HStack(alignment: self.isLarge ? .top : .center, spacing: CallRecordingRow.textSpacing) {
             CallRecordingAvatar(name: name, gradients: theme.avatarGradients)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
