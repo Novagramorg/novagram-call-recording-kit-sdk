@@ -60,14 +60,21 @@ public struct CallRecordingStrings {
         let pick = language.pick
         self.title = pick("Call recordings", "Qo'ng'iroq yozuvlari", "Записи звонков", "通话录音文件")
         self.emptyTitle = pick("No recordings yet", "Hali yozuvlar yo'q", "Записей пока нет", "还没有录音")
+        // "Tap" on a touch screen, "Click" on the Mac. Only English differs: uz "bosing", ru "нажмите" and zh "点按"
+        // (Apple's own word for a Mac click) fit both.
+        #if os(macOS)
+        let tapWord = "click"
+        #else
+        let tapWord = "tap"
+        #endif
         self.emptyText = pick(
-            "Turn on Call recording and tap Record during a call.",
+            "Turn on Call recording and \(tapWord) Record during a call.",
             "«Qo'ng'iroqni yozib olish»ni yoqing va qo'ng'iroq paytida «Yozish»ni bosing.",
             "Включите «Запись звонков» и нажмите «Запись» во время звонка.",
             "打开“通话录音”，并在通话中点按“录制”。"
         )
         self.emptyTextEnabled = pick(
-            "Tap Record during a call to save it here.",
+            "\(tapWord.capitalized) Record during a call to save it here.",
             "Qo'ng'iroq paytida «Yozish»ni bosing, yozuv shu yerda saqlanadi.",
             "Нажмите «Запись» во время звонка, и запись появится здесь.",
             "在通话中点按“录制”，录音会保存在这里。"

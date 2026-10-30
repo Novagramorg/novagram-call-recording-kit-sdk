@@ -46,7 +46,7 @@ public struct CallRecordingsListView: View {
     private static let footerTopPadding: CGFloat = 18
     #endif
     private static let summaryToHeaderSpacing: CGFloat = 22
-    // The empty state's icon centre sits at this share of the height, a little above the middle.
+    // The empty state's icon and texts are centred at this share of the height, a little above the middle.
     private static let emptyStateVerticalPosition: CGFloat = 0.4
     private static let emptyIconSize: CGFloat = 44
 
@@ -63,7 +63,8 @@ public struct CallRecordingsListView: View {
     }
 
     private var isLargeText: Bool {
-        return (self.theme.followsDynamicType && self.dynamicTypeSize.isAccessibilitySize) || self.theme.titleFontSize * self.fontScale >= 24
+        // An accessibility text size stacks the row even when the host keeps its own font sizes, as Telegram's lists do.
+        return self.dynamicTypeSize.isAccessibilitySize || self.theme.titleFontSize * self.fontScale >= 24
     }
 
     public var body: some View {
@@ -280,6 +281,7 @@ public struct CallRecordingsListView: View {
                     .fill(self.theme.separator)
                     .frame(height: 1 / max(1, self.displayScale))
                     .padding(.leading, leading)
+                    .padding(.trailing, CallRecordingsListView.rowInsets.trailing)
             }
         }
     }
@@ -318,11 +320,12 @@ public struct CallRecordingsListView: View {
             .accessibilityAddTraits(.isHeader)
     }
 
-    // The icon's centre at 40% of the height (like the iOS app's empty screens), the texts under it.
+    // The icon and texts centred at 40% of the height (like the iOS app's empty screens): a box of 80% of the height
+    // centres them there, and grows (scrolls) when the texts are taller.
     private var emptyState: some View {
         GeometryReader { proxy in
             let iconSize = CallRecordingsListView.emptyIconSize * self.fontScale
-            let iconTop = max(0, proxy.size.height * CallRecordingsListView.emptyStateVerticalPosition - iconSize / 2)
+            let boxHeight = proxy.size.height * CallRecordingsListView.emptyStateVerticalPosition * 2
             ScrollView {
                 VStack(spacing: 12) {
                     Image(systemName: "waveform.circle")
@@ -340,9 +343,8 @@ public struct CallRecordingsListView: View {
                     .multilineTextAlignment(.center)
                 }
                 .padding(.horizontal, 32)
-                .padding(.top, iconTop)
-                .padding(.bottom, 32)
-                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .frame(maxWidth: .infinity, minHeight: boxHeight)
                 .accessibilityElement(children: .combine)
             }
         }

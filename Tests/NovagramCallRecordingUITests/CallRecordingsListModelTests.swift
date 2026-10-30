@@ -203,4 +203,16 @@ final class CallRecordingsListModelTests: XCTestCase {
         XCTAssertEqual(asked, ["Delete?", "deleted"])
         XCTAssertEqual(CallRecordingTheme(listSideInset: 20).listSideInset, 20)
     }
+
+    func testEmptyStateSaysClickOnTheMacAndTapOnIOS() {
+        let strings = CallRecordingStrings(languageCode: "en")
+        #if os(macOS)
+        XCTAssertEqual(strings.emptyTextEnabled, "Click Record during a call to save it here.")
+        XCTAssertEqual(strings.emptyText, "Turn on Call recording and click Record during a call.")
+        #else
+        XCTAssertEqual(strings.emptyTextEnabled, "Tap Record during a call to save it here.")
+        XCTAssertEqual(strings.emptyText, "Turn on Call recording and tap Record during a call.")
+        #endif
+        XCTAssertEqual(CallRecordingStrings(languageCode: "ru").emptyTextEnabled, "Нажмите «Запись» во время звонка, и запись появится здесь.")
+    }
 }
