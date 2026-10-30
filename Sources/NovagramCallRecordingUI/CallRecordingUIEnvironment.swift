@@ -26,6 +26,10 @@ public struct CallRecordingUIEnvironment {
     /// Share was chosen for these files. The rect is the row or button it came from, in the window's coordinates
     /// (SwiftUI's global space), to anchor a popover; `.zero` when unknown.
     public var onShare: @MainActor ([URL], CGRect) -> Void
+    /// The list puts its title, menu and select-mode buttons into the navigation container's toolbar. Turn it off
+    /// when the host draws its own navigation bar (the iOS app's Telegram bar) and drives
+    /// ``CallRecordingsListViewModel`` instead; the select-mode Share / Delete bar at the bottom stays.
+    public var showsToolbar: Bool = true
 
     public init(
         languageCode: String = "en",

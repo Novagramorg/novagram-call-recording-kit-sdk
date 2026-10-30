@@ -101,11 +101,54 @@ public final class CallRecordingsListViewModel: ObservableObject {
     public let storage: CallRecordingStorage
     @Published public private(set) var recordings: [CallRecording] = []
     @Published public private(set) var isLoaded = false
-    /// Kept for the screen's lifetime only.
-    @Published public var filter: CallRecordingFilter = .all
+    /// Kept for the screen's lifetime only. Rows the filter hides are not selected any more.
+    @Published public var filter: CallRecordingFilter = .all {
+        didSet {
+            self.selection.formIntersection(self.visibleRecordings.map(\.url))
+        }
+    }
+    /// Select mode (iOS). The list's own toolbar drives it; a host that draws its own navigation bar
+    /// (``CallRecordingUIEnvironment/showsToolbar`` off) drives it with ``setSelecting(_:)`` and ``toggleSelectAll()``.
+    @Published public private(set) var isSelecting = false
+    /// The selected files while ``isSelecting``.
+    @Published public var selection = Set<URL>()
+
+    // requestClearAll(): the list asks for confirmation, then deletes.
+    let clearAllRequests = PassthroughSubject<Void, Never>()
 
     public init(storage: CallRecordingStorage) {
         self.storage = storage
+    }
+
+    /// Turns select mode on or off; either way nothing is selected.
+    public func setSelecting(_ isSelecting: Bool) {
+        self.isSelecting = isSelecting
+        self.selection.removeAll()
+    }
+
+    /// The selection in list order, so a share sheet shows the files as the list does.
+    public var selectedURLs: [URL] {
+        return self.visibleRecordings.map(\.url).filter { self.selection.contains($0) }
+    }
+
+    /// Every visible recording is selected.
+    public var allVisibleSelected: Bool {
+        let visible = self.visibleRecordings
+        return !visible.isEmpty && visible.allSatisfy { self.selection.contains($0.url) }
+    }
+
+    /// Select All, or Deselect All when everything visible is selected.
+    public func toggleSelectAll() {
+        if self.allVisibleSelected {
+            self.selection.removeAll()
+        } else {
+            self.selection = Set(self.visibleRecordings.map(\.url))
+        }
+    }
+
+    /// The menu's Clear All from a host-drawn navigation bar: the list shows the same confirmation as its own menu.
+    public func requestClearAll() {
+        self.clearAllRequests.send(())
     }
 
     public var visibleRecordings: [CallRecording] {

@@ -12,8 +12,6 @@ public struct CallRecordingsListView: View {
     @StateObject private var model: CallRecordingsListViewModel
     private let environment: CallRecordingUIEnvironment
 
-    @State private var selection = Set<URL>()
-    @State private var isSelecting = false
     @State private var pendingDeletion: PendingDeletion?
     @State private var frames = CallRecordingFrameStore()
     @ScaledMetric(relativeTo: .body) private var scaledHundred: CGFloat = 100
@@ -61,18 +59,20 @@ public struct CallRecordingsListView: View {
                 self.list
             }
         }
-        .navigationTitle(self.strings.title)
+        .modifier(CallRecordingNavigationTitle(title: self.environment.showsToolbar ? self.strings.title : nil))
         .toolbar {
             #if os(iOS)
             ToolbarItem(placement: .navigationBarLeading) {
-                if self.isSelecting {
+                if self.environment.showsToolbar && self.isSelecting {
                     Button(self.allVisibleSelected ? self.strings.deselectAll : self.strings.selectAll) {
                         self.toggleSelectAll()
                     }
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
-                if self.isSelecting {
+                if !self.environment.showsToolbar {
+                    EmptyView()
+                } else if self.isSelecting {
                     Button(self.strings.done) {
                         self.setSelecting(false)
                     }
@@ -100,7 +100,7 @@ public struct CallRecordingsListView: View {
             #endif
         }
         #if os(iOS)
-        .navigationBarBackButtonHidden(self.isSelecting)
+        .navigationBarBackButtonHidden(self.environment.showsToolbar && self.isSelecting)
         .safeAreaInset(edge: .bottom) {
             if self.isSelecting {
                 self.selectionBar
@@ -115,6 +115,9 @@ public struct CallRecordingsListView: View {
             }
         }
         .tint(self.theme.accent)
+        .onReceive(self.model.clearAllRequests) { _ in
+            self.confirmClearAll()
+        }
         .task {
             await self.model.reload()
         }
@@ -125,7 +128,7 @@ public struct CallRecordingsListView: View {
     private var list: some View {
         let sections = self.model.sections()
         let summary = CallRecordingsListModel.summary(for: self.model.visibleRecordings, filter: self.model.filter, strings: self.strings, sizeString: self.environment.sizeString)
-        return List(selection: self.$selection) {
+        return List(selection: self.$model.selection) {
             if sections.isEmpty {
                 Section {
                 } header: {
@@ -346,10 +349,15 @@ public struct CallRecordingsListView: View {
             self.model.filter
         }, set: { filter in
             self.model.filter = filter
-            // Rows the filter hides are not selected any more.
-            let visible = Set(self.model.visibleRecordings.map(\.url))
-            self.selection = self.selection.intersection(visible)
         })
+    }
+
+    private var isSelecting: Bool {
+        return self.model.isSelecting
+    }
+
+    private var selection: Set<URL> {
+        return self.model.selection
     }
 
     private var deletionIsPresented: Binding<Bool> {
@@ -362,27 +370,20 @@ public struct CallRecordingsListView: View {
         })
     }
 
-    // The selection in list order, so a share sheet shows the files as the list does.
     private var selectedURLs: [URL] {
-        return self.model.visibleRecordings.map(\.url).filter { self.selection.contains($0) }
+        return self.model.selectedURLs
     }
 
     private var allVisibleSelected: Bool {
-        let visible = self.model.visibleRecordings
-        return !visible.isEmpty && visible.allSatisfy { self.selection.contains($0.url) }
+        return self.model.allVisibleSelected
     }
 
     private func toggleSelectAll() {
-        if self.allVisibleSelected {
-            self.selection.removeAll()
-        } else {
-            self.selection = Set(self.model.visibleRecordings.map(\.url))
-        }
+        self.model.toggleSelectAll()
     }
 
     private func setSelecting(_ isSelecting: Bool) {
-        self.isSelecting = isSelecting
-        self.selection.removeAll()
+        self.model.setSelecting(isSelecting)
     }
 
     // MARK: - Actions
@@ -418,9 +419,23 @@ public struct CallRecordingsListView: View {
     private func performDeletion(_ urls: [URL]) {
         let deleted = self.model.delete(urls)
         self.frames.forget(deleted)
-        self.selection.subtract(deleted)
+        self.model.selection.subtract(deleted)
         if self.model.visibleRecordings.isEmpty {
-            self.isSelecting = false
+            self.model.setSelecting(false)
+        }
+    }
+}
+
+// The navigation title, or none when the host draws its own navigation bar.
+@available(macOS 14, iOS 15, *)
+private struct CallRecordingNavigationTitle: ViewModifier {
+    let title: String?
+
+    func body(content: Content) -> some View {
+        if let title = self.title {
+            content.navigationTitle(title)
+        } else {
+            content
         }
     }
 }

@@ -151,6 +151,12 @@ environment.timeString = { /* stringForShortTimestamp with dateTimeFormat */ }
 environment.strings.cancel = strings.Common_Cancel
 ```
 
+The view puts its title, menu and select-mode buttons into the navigation container's toolbar. Telegram's
+`ViewController` draws its own navigation bar, so the iOS app sets `environment.showsToolbar = false`, keeps one
+`CallRecordingsListViewModel` and drives it from its own bar buttons: `filter`, `setSelecting(_:)`,
+`toggleSelectAll()`, `allVisibleSelected`, `requestClearAll()` (the list shows the same confirmation as its own
+menu). The select-mode Share / Delete bar at the bottom stays in the view.
+
 Notice: keep one `CallRecordingNoticePolicy` (main thread). After `start` returns, call
 `beginSending(callSessionId:isOneToOneUser:recorderDidStart:)`; when it is true, send
 `CallRecordingNoticePolicy.message(languageCode:)` and later `markDelivered` / `markFailed`. On failure show
@@ -229,10 +235,11 @@ timeline's clock; push it whenever the call plays sound. The Mac keeps its own m
 
 - `CallRecordingsListView(storage:environment:)`, `CallRecordingsListView(model:environment:)`.
 - `CallRecordingUIEnvironment`: `theme`, `strings`, `isRecordingEnabled`, `dayHeader`, `sizeString`, `timeString`,
-  `durationString`, `spokenDuration`, `onPlay`, `onShare`.
+  `durationString`, `spokenDuration`, `onPlay`, `onShare`, `showsToolbar`.
 - `CallRecordingTheme` (colours, avatar gradients, font sizes, `followsDynamicType`), `CallRecordingStrings`
   (en/uz/ru/zh built in, every value overridable), `CallRecordingFormatters`.
-- `CallRecordingsListViewModel` (`reload()`, `delete(_:)`, `filter`), `CallRecordingsListModel` (`sections`,
+- `CallRecordingsListViewModel` (`reload()`, `delete(_:)`, `filter`, `isSelecting`, `selection`, `setSelecting(_:)`,
+  `selectedURLs`, `allVisibleSelected`, `toggleSelectAll()`, `requestClearAll()`), `CallRecordingsListModel` (`sections`,
   `summary`, `subtitle`, `clearConfirmation`), `CallRecordingFilter`, `CallRecordingDaySection`.
 
 ## Threading

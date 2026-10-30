@@ -143,4 +143,40 @@ final class CallRecordingsListModelTests: XCTestCase {
         XCTAssertEqual(model.recordings.map(\.peerName), ["Ali"])
         XCTAssertFalse(FileManager.default.fileExists(atPath: voice.path))
     }
+
+    @MainActor
+    func testViewModelSelectModeForAHostDrawnToolbar() async throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("call-recording-ui-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer {
+            try? FileManager.default.removeItem(at: folder)
+        }
+        let video = folder.appendingPathComponent("Ali 2026-10-30 14.05.mp4")
+        let voice = folder.appendingPathComponent("Vali 2026-10-30 14.06.m4a")
+        try Data([1, 2]).write(to: video)
+        try Data([1]).write(to: voice)
+        let model = CallRecordingsListViewModel(storage: CallRecordingStorage(directory: folder))
+        await model.reload()
+        XCTAssertFalse(model.isSelecting)
+        model.setSelecting(true)
+        XCTAssertTrue(model.isSelecting)
+        XCTAssertFalse(model.allVisibleSelected)
+        model.toggleSelectAll()
+        XCTAssertTrue(model.allVisibleSelected)
+        XCTAssertEqual(Set(model.selectedURLs.map(\.lastPathComponent)), [video.lastPathComponent, voice.lastPathComponent])
+        // A filter drops the rows it hides from the selection.
+        model.filter = .video
+        XCTAssertEqual(model.selectedURLs.map(\.lastPathComponent), [video.lastPathComponent])
+        XCTAssertTrue(model.allVisibleSelected)
+        model.toggleSelectAll()
+        XCTAssertTrue(model.selection.isEmpty)
+        var clearAllRequests = 0
+        let cancellable = model.clearAllRequests.sink { clearAllRequests += 1 }
+        model.requestClearAll()
+        XCTAssertEqual(clearAllRequests, 1)
+        cancellable.cancel()
+        model.setSelecting(false)
+        XCTAssertFalse(model.isSelecting)
+        XCTAssertTrue(model.selection.isEmpty)
+    }
 }
