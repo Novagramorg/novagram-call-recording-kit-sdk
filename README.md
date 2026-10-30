@@ -139,7 +139,8 @@ var environment = CallRecordingUIEnvironment(
         avatarGradients: AvatarNode.gradientColors.map { $0.map(Color.init) },
         titleFontSize: listsFontSize, subtitleFontSize: floor(listsFontSize * 14 / 17),
         timeFontSize: floor(listsFontSize * 15 / 17), freeTextFontSize: floor(listsFontSize * 13 / 17),
-        followsDynamicType: false
+        followsDynamicType: false,
+        freeText: Color(theme.list.freeTextColor)
     ),
     isRecordingEnabled: CallRecordingSettings().isEnabled,
     onPlay: { recording in /* QuickLook or Telegram's player */ },

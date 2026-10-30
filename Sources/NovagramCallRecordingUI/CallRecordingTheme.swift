@@ -15,6 +15,9 @@ public struct CallRecordingTheme {
     public var card: Color
     public var primaryText: Color
     public var secondaryText: Color
+    /// The summary line, the day headers, the footer and the empty-state text. Telegram's lists draw these a
+    /// little darker than a row's subtitle; the default is ``secondaryText``.
+    public var freeText: Color
     public var accent: Color
     public var destructive: Color
     public var separator: Color
@@ -44,12 +47,14 @@ public struct CallRecordingTheme {
         subtitleFontSize: CGFloat = 14,
         timeFontSize: CGFloat = 15,
         freeTextFontSize: CGFloat = 13,
-        followsDynamicType: Bool = true
+        followsDynamicType: Bool = true,
+        freeText: Color? = nil
     ) {
         self.background = background
         self.card = card
         self.primaryText = primaryText
         self.secondaryText = secondaryText
+        self.freeText = freeText ?? secondaryText
         self.accent = accent
         self.destructive = destructive
         self.separator = separator

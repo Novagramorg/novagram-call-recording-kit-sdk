@@ -251,14 +251,14 @@ public struct CallRecordingsListView: View {
     private func freeText(_ text: String) -> some View {
         return Text(text)
             .font(.system(size: self.theme.freeTextFontSize * self.fontScale))
-            .foregroundColor(self.theme.secondaryText)
+            .foregroundColor(self.theme.freeText)
             .textCase(nil)
     }
 
     private func dayHeader(_ day: Date) -> some View {
         return Text(self.environment.dayHeader(day))
             .font(.system(size: self.theme.freeTextFontSize * self.fontScale))
-            .foregroundColor(self.theme.secondaryText)
+            .foregroundColor(self.theme.freeText)
             .textCase(.uppercase)
             .accessibilityAddTraits(.isHeader)
     }
@@ -274,7 +274,7 @@ public struct CallRecordingsListView: View {
                 .foregroundColor(self.theme.primaryText)
             Text(self.environment.isRecordingEnabled ? self.strings.emptyTextEnabled : self.strings.emptyText)
                 .font(.system(size: self.theme.subtitleFontSize * self.fontScale))
-                .foregroundColor(self.theme.secondaryText)
+                .foregroundColor(self.theme.freeText)
                 .multilineTextAlignment(.center)
         }
         .padding(32)
