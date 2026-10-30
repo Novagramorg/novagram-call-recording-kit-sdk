@@ -189,6 +189,12 @@ public final class CallRecordingCenter: ObservableObject {
             self.detach(callId: callId)
             self.setState(.idle, callId: callId)
         }
+        CallRecordingCenter.finish(recorders, timeout: timeout, completion: completion)
+    }
+
+    // Nonisolated on purpose: closures made here are not main-actor closures, so Swift 6 does not trap when the
+    // dispatch group and the timeout run them on a background queue.
+    nonisolated private static func finish(_ recorders: [CallRecorder], timeout: Double, completion: @escaping @Sendable () -> Void) {
         let callback = CallRecordingOnceCallback(completion)
         let group = DispatchGroup()
         for recorder in recorders {

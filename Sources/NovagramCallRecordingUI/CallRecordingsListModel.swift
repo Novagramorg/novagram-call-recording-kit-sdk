@@ -126,8 +126,13 @@ public final class CallRecordingsListViewModel: ObservableObject {
     @discardableResult
     public func delete(_ urls: [URL]) -> [URL] {
         let deleted = self.storage.delete(urls)
-        let gone = Set(deleted)
-        self.recordings.removeAll { gone.contains($0.url) }
+        let gone = Set(deleted.map(CallRecordingsListViewModel.fileKey))
+        self.recordings.removeAll { gone.contains(CallRecordingsListViewModel.fileKey($0.url)) }
         return deleted
+    }
+
+    // The same file can be spelled /var/... or /private/var/...; compare the resolved folder plus the name.
+    private static func fileKey(_ url: URL) -> String {
+        return url.deletingLastPathComponent().resolvingSymlinksInPath().appendingPathComponent(url.lastPathComponent).path
     }
 }
