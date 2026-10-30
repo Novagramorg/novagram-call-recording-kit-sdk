@@ -32,6 +32,7 @@ public struct CallRecordingVideoLayout: Sendable, Equatable {
 // picture-in-picture with rounded corners in the layout's corner. Normally the other side is big and ours small;
 // a swapped layout turns that around. When only one side has video it fills the frame.
 // Renders through a Metal-backed CIContext. Used on the recorder queue only.
+@available(macOS 14, iOS 15, *)
 final class CallRecordingVideoCompositor {
     static let defaultWidth = 720
     static let defaultHeight = 1280

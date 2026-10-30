@@ -6,6 +6,7 @@ import Foundation
 // frames, and the same number of microphone frames is popped from a FIFO (zeros on underrun). Both streams are
 // downmixed to mono and resampled to 48 kHz first; the mono mix is written to both channels.
 // Used on the recorder's serial queue only.
+@available(macOS 14, iOS 15, *)
 final class CallRecordingAudioMixer {
     static let outputSampleRate: Int = 48000
     static let outputChannels: Int = 2
@@ -90,6 +91,7 @@ final class CallRecordingAudioMixer {
 
 // Streaming linear-interpolation resampler to 48 kHz. Positions are kept as exact integers in units of
 // 1 / 48000 of an input sample, so it never drifts and 48 kHz input passes through unchanged.
+@available(macOS 14, iOS 15, *)
 final class CallRecordingLinearResampler {
     private let outputRate = CallRecordingAudioMixer.outputSampleRate
     // Position of the next output sample in input samples times `outputRate`; -outputRate is the previous chunk's
@@ -142,6 +144,7 @@ final class CallRecordingLinearResampler {
 
 // Fixed-capacity FIFO of mono samples. On overflow the oldest samples are dropped, so the microphone never lags
 // the playout clock by more than the capacity.
+@available(macOS 14, iOS 15, *)
 final class CallRecordingFloatFifo {
     private var buffer: [Float]
     private var head = 0

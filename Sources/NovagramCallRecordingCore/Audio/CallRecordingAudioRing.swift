@@ -8,6 +8,7 @@ import os
 // All memory is allocated up front; the producer path does no allocation, no ObjC messaging and no logging.
 // Sendable because every mutable field is guarded by `lock` (the slots between readIndex and writeIndex belong to
 // the consumer alone).
+@available(macOS 14, iOS 15, *)
 final class CallRecordingAudioRing: @unchecked Sendable {
     struct Chunk {
         let samples: UnsafePointer<Int16>
@@ -113,6 +114,7 @@ final class CallRecordingAudioRing: @unchecked Sendable {
     }
 }
 
+@available(macOS 14, iOS 15, *)
 enum CallRecordingHostClock {
     private static let timebase: mach_timebase_info_data_t = {
         var info = mach_timebase_info_data_t()

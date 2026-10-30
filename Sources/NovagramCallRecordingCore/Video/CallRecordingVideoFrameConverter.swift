@@ -6,6 +6,7 @@ import Accelerate
 
 // Turns frames into upright CIImages. NV12 and I420 planes are copied into full-range 4:2:0 pixel buffers (the
 // format the call screen converts them to). Used on the recorder queue only; one converter per video side.
+@available(macOS 14, iOS 15, *)
 final class CallRecordingVideoFrameConverter {
     private var pool: CVPixelBufferPool?
     private var poolWidth = 0

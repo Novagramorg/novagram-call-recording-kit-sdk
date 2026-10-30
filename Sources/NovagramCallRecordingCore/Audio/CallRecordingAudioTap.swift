@@ -16,6 +16,7 @@ public enum CallRecordingAudioSource: Sendable, Equatable {
 /// Both methods only copy the samples into a preallocated ring and return; the recorder's own queue mixes and
 /// encodes them. Push each source from one thread at a time (one producer per source). Remove your tap when the
 /// recording stops: later pushes are dropped and cost nothing.
+@available(macOS 14, iOS 15, *)
 public final class CallRecordingAudioTap: Sendable {
     let micRing: CallRecordingAudioRing
     let playoutRing: CallRecordingAudioRing
@@ -56,6 +57,7 @@ public final class CallRecordingAudioTap: Sendable {
 }
 
 // Reads a linear PCM CMSampleBuffer into interleaved Int16 samples.
+@available(macOS 14, iOS 15, *)
 enum CallRecordingSampleBufferPCM {
     struct PCM {
         let samples: [Int16]

@@ -21,7 +21,12 @@ GPL-2.0-or-later. `LICENSE` holds the GPL version 2 text; every source file star
 | `NovagramCallRecordingCore` | `CallRecordingCenter` (per-call sessions and state), the audio tap and its real-time ring, the mixer (downmix, resample to 48 kHz, mute), the recorder (AVAssetWriter, one timeline, 2 s movie fragments, B-frames off, black frames until the first real video frame, `.m4a` passthrough export when no video ever came), the video frame conversion (pixel buffer / NV12 / I420, rotation and mirroring), the compositor (default 720x1280, the big side aspect-fit, the small one as a rounded picture-in-picture in a corner, swap), the storage (folder, file names, list, delete, recovery of recordings a killed app left in `.partial`), `CallRecordingSettings` and `CallRecordingNoticePolicy`. |
 | `NovagramCallRecordingUI`   | `CallRecordingsListView` (SwiftUI, iOS 15+, macOS 14+): the summary line, day sections, rows with an initials avatar, the storage footer, the empty state, a menu with Filter All/Video/Voice, Select (multi-select, then Share and Delete N) and Clear All with confirmations. On the Mac it is a native `List` with multi-selection, a context menu, double-click to play and the Delete key.                                                                                                                                                                                                                                                                                                           |
 
-Platforms: iOS 15, macOS 14. Swift 6 language mode in SwiftPM. The sources also build in Swift 5 mode with
+Platforms: iOS 15, macOS 10.13 (the package minimum, so a host that deploys to 10.13 can depend on it). Every recorder,
+audio, video, UI and list type is `@available(macOS 14, iOS 15, *)`; on the Mac the host wraps all use in
+`if #available(macOS 14, *)`. Only the plain Foundation pieces have no gate: `CallRecording`, `CallRecordingStorage`,
+`CallRecordingName`, `CallRecordingSettings`, `CallRecordingLanguage`, `CallRecordingNoticePolicy`,
+`CallRecordingConfiguration`, `CallRecordingError`, `CallRecordingState`, `CallRecordingAudioSource`,
+`CallRecordingVideoSide`, `CallRecordingPipCorner` and `CallRecordingVideoLayout`. Swift 6 language mode in SwiftPM. The sources also build in Swift 5 mode with
 `-warnings-as-errors` (checked), so the Bazel targets work in either language mode.
 
 ## Integration

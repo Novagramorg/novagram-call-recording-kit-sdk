@@ -12,6 +12,7 @@ import CoreImage
 // audio times come from the sample count, video times from the host clock relative to the same start.
 // All writer state lives on `queue`; the audio tap only writes into the two rings, and frames, mute and layout are
 // handed to the queue. Sendable for that reason: every mutable field below is touched on `queue` only.
+@available(macOS 14, iOS 15, *)
 final class CallRecorder: @unchecked Sendable {
     static let sampleRate = CallRecordingAudioMixer.outputSampleRate
     static let tickInterval: Double = 1.0 / 30.0

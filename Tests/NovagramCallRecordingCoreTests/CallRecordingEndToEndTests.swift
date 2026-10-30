@@ -7,6 +7,7 @@ import Metal
 @testable import NovagramCallRecordingCore
 
 // Stands in for the host's audio device: holds the session the test installs and onDetach removes.
+@available(macOS 14, iOS 15, *)
 private final class SessionHolder: @unchecked Sendable {
     private let lock = NSLock()
     private var session: CallRecordingSession?
@@ -38,6 +39,7 @@ private enum VideoFeed {
     case secondHalf
 }
 
+@available(macOS 14, iOS 15, *)
 final class CallRecordingEndToEndTests: XCTestCase {
     private static let seconds = 3.0
     private static let chunkSeconds = 0.01

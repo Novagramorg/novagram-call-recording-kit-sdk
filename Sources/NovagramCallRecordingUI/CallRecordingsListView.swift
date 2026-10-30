@@ -7,6 +7,7 @@ import NovagramCallRecordingCore
 ///
 /// Put it in a navigation container; it sets its own title and toolbar. Rows play on tap (double-click on the Mac)
 /// and offer Play, Share and Delete in a context menu (and swipe actions on iOS).
+@available(macOS 14, iOS 15, *)
 public struct CallRecordingsListView: View {
     @StateObject private var model: CallRecordingsListViewModel
     private let environment: CallRecordingUIEnvironment
@@ -424,12 +425,13 @@ public struct CallRecordingsListView: View {
     }
 }
 
-// Shows the theme's background behind the list where the system allows it (iOS 16+, macOS 13+).
+// Shows the theme's background behind the list where the system allows it (iOS 16+; always on macOS 14).
+@available(macOS 14, iOS 15, *)
 private struct CallRecordingListBackground: ViewModifier {
     let color: Color
 
     func body(content: Content) -> some View {
-        if #available(iOS 16.0, macOS 13.0, *) {
+        if #available(iOS 16.0, *) {
             content
                 .scrollContentBackground(.hidden)
                 .background(self.color.ignoresSafeArea())

@@ -2,6 +2,7 @@
 import XCTest
 @testable import NovagramCallRecordingCore
 
+@available(macOS 14, iOS 15, *)
 final class CallRecordingNoticePolicyTests: XCTestCase {
     func testSentOncePerCallSession() {
         var policy = CallRecordingNoticePolicy()
@@ -76,6 +77,7 @@ final class CallRecordingNoticePolicyTests: XCTestCase {
     }
 }
 
+@available(macOS 14, iOS 15, *)
 final class CallRecordingSettingsTests: XCTestCase {
     private var suiteName: String!
     private var defaults: UserDefaults!

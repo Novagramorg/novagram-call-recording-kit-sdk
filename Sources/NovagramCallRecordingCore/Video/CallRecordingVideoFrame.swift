@@ -16,6 +16,7 @@ public enum CallRecordingVideoSide: Sendable, Equatable {
 /// Each app adapts its own frames: the iOS app maps Telegram's `VideoFrameData` (native, NV12 or I420 buffers plus
 /// orientation and mirroring), the Mac passes ScreenCaptureKit pixel buffers. Sendable because the planes are
 /// immutable `Data` and a pixel buffer is only read after it is handed over.
+@available(macOS 14, iOS 15, *)
 public struct CallRecordingVideoFrame: @unchecked Sendable {
     /// The picture.
     public enum Buffer {

@@ -4,6 +4,7 @@ import CoreGraphics
 import NovagramCallRecordingCore
 
 /// Everything the host injects into ``CallRecordingsListView``.
+@available(macOS 14, iOS 15, *)
 public struct CallRecordingUIEnvironment {
     public var theme: CallRecordingTheme
     public var strings: CallRecordingStrings

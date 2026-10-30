@@ -4,6 +4,7 @@ import CoreImage
 import CoreVideo
 @testable import NovagramCallRecordingCore
 
+@available(macOS 14, iOS 15, *)
 final class CallRecordingVideoTests: XCTestCase {
     // Maps the centre of a pixel through the orientation transform; (x, y) are counted from the top, as on screen.
     private func orientedPixel(_ x: Int, _ y: Int, width: Int, height: Int, turns: Int, mirrorH: Bool, mirrorV: Bool) -> (Int, Int, CGSize) {

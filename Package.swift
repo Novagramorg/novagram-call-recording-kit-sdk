@@ -6,7 +6,7 @@ let package = Package(
     name: "NovagramCallRecordingKit",
     platforms: [
         .iOS(.v15),
-        .macOS(.v14)
+        .macOS(.v10_13)
     ],
     products: [
         .library(name: "NovagramCallRecordingCore", targets: ["NovagramCallRecordingCore"]),

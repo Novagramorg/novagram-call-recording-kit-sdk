@@ -4,6 +4,7 @@ import AVFoundation
 import CoreMedia
 @testable import NovagramCallRecordingCore
 
+@available(macOS 14, iOS 15, *)
 final class CallRecordingAudioMixerTests: XCTestCase {
     private func mixPlayout(_ mixer: CallRecordingAudioMixer, _ samples: [Int16], channels: Int = 1, sampleRate: UInt32) -> [Int16] {
         var output: [Int16] = []
@@ -131,6 +132,7 @@ final class CallRecordingAudioMixerTests: XCTestCase {
     }
 }
 
+@available(macOS 14, iOS 15, *)
 final class CallRecordingAudioTapTests: XCTestCase {
     // A Float32 non-interleaved stereo buffer, as ScreenCaptureKit delivers its audio.
     private func makeFloatSampleBuffer(left: [Float], right: [Float]) throws -> CMSampleBuffer {

@@ -2,6 +2,7 @@
 import XCTest
 @testable import NovagramCallRecordingCore
 
+@available(macOS 14, iOS 15, *)
 final class CallRecordingStorageTests: XCTestCase {
     private var folder: URL!
     private var storage: CallRecordingStorage!

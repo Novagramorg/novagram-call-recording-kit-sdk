@@ -4,6 +4,7 @@ import NovagramCallRecordingCore
 
 /// Every text of the recordings screen. English, Uzbek, Russian and Chinese are built in; the host passes its
 /// language code and may override any value (for example with Telegram's own "Cancel" and "Delete").
+@available(macOS 14, iOS 15, *)
 public struct CallRecordingStrings {
     public let language: CallRecordingLanguage
 

@@ -3,6 +3,7 @@ import Foundation
 import NovagramCallRecordingCore
 
 /// The default formatting. The iOS app replaces it with Telegram's own (date headers, 12/24-hour time, sizes).
+@available(macOS 14, iOS 15, *)
 public enum CallRecordingFormatters {
     /// m:ss, or h:mm:ss from one hour.
     public static func duration(_ seconds: Double) -> String {

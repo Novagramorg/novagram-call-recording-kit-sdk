@@ -8,6 +8,7 @@ import AppKit
 
 /// Colours and text sizes of the recordings screen. The default follows the system appearance; the iOS app maps
 /// Telegram's theme and its own text size (and turns ``followsDynamicType`` off, as Telegram's lists do).
+@available(macOS 14, iOS 15, *)
 public struct CallRecordingTheme {
     public var background: Color
     /// The rows' background.

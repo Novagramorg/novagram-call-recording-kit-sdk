@@ -5,6 +5,7 @@ import NovagramCallRecordingCore
 // One row, laid out like a row of Telegram's call log: an avatar with the peer's initials, the name over
 // "Video call · 0:40 · 742,3 KB", and the time on the right. At accessibility text sizes the time moves under the
 // subtitle and the name may wrap.
+@available(macOS 14, iOS 15, *)
 struct CallRecordingRow: View {
     static let avatarSize: CGFloat = 40
     static let minHeight: CGFloat = 44
@@ -68,6 +69,7 @@ struct CallRecordingRow: View {
     }
 }
 
+@available(macOS 14, iOS 15, *)
 struct CallRecordingAvatar: View {
     let name: String
     let gradients: [[Color]]
@@ -88,6 +90,7 @@ struct CallRecordingAvatar: View {
 
 // Where each row and the bottom Share button were last laid out, in global coordinates. A plain reference, written
 // during layout, so scrolling never triggers a state update.
+@available(macOS 14, iOS 15, *)
 @MainActor
 final class CallRecordingFrameStore {
     private var frames: [URL: CGRect] = [:]

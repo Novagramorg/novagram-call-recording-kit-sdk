@@ -12,6 +12,7 @@ public enum CallRecordingState: Equatable, Sendable {
 /// One running recording: where the host pushes the call's audio and video.
 ///
 /// Every method may be called from any thread. ``audioTap`` is safe on a real-time audio thread.
+@available(macOS 14, iOS 15, *)
 public final class CallRecordingSession: Sendable {
     public let callId: UUID
     /// Push the call's audio here (PCM from the audio device, or capture sample buffers).
@@ -47,6 +48,7 @@ public final class CallRecordingSession: Sendable {
 ///
 /// Main-actor API. The audio tap runs on the audio thread and each writer on its recorder's own queue.
 /// Observe state with `@Published` ``recordingStartDates`` (SwiftUI, Combine) or ``stateUpdates(callId:)``.
+@available(macOS 14, iOS 15, *)
 @MainActor
 public final class CallRecordingCenter: ObservableObject {
     public let storage: CallRecordingStorage
@@ -249,6 +251,7 @@ public final class CallRecordingCenter: ObservableObject {
 }
 
 // Calls the wrapped closure at most once, from whichever thread gets there first.
+@available(macOS 14, iOS 15, *)
 private final class CallRecordingOnceCallback: @unchecked Sendable {
     private let lock = NSLock()
     private var callback: (@Sendable () -> Void)?

@@ -3,6 +3,7 @@ import XCTest
 import NovagramCallRecordingCore
 @testable import NovagramCallRecordingUI
 
+@available(macOS 14, iOS 15, *)
 final class CallRecordingsListModelTests: XCTestCase {
     private var calendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)

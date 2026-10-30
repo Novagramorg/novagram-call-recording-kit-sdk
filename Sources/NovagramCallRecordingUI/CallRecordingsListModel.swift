@@ -4,6 +4,7 @@ import Combine
 import NovagramCallRecordingCore
 
 /// The toolbar menu's filter.
+@available(macOS 14, iOS 15, *)
 public enum CallRecordingFilter: String, CaseIterable, Sendable {
     case all
     case video
@@ -33,6 +34,7 @@ public enum CallRecordingFilter: String, CaseIterable, Sendable {
 }
 
 /// The recordings of one calendar day, newest first.
+@available(macOS 14, iOS 15, *)
 public struct CallRecordingDaySection: Identifiable, Equatable, Sendable {
     public let day: Date
     public var recordings: [CallRecording]
@@ -43,6 +45,7 @@ public struct CallRecordingDaySection: Identifiable, Equatable, Sendable {
 }
 
 /// The list's pure rules: day sections, filtering, the summary line and the row subtitle.
+@available(macOS 14, iOS 15, *)
 public enum CallRecordingsListModel {
     /// The recordings `filter` shows, grouped by calendar day, newest day and newest recording first.
     public static func sections(for recordings: [CallRecording], filter: CallRecordingFilter, calendar: Calendar = .current) -> [CallRecordingDaySection] {
@@ -92,6 +95,7 @@ public enum CallRecordingsListModel {
 }
 
 /// The list's state: the recordings in the folder and the filter. Loads off the main thread.
+@available(macOS 14, iOS 15, *)
 @MainActor
 public final class CallRecordingsListViewModel: ObservableObject {
     public let storage: CallRecordingStorage
