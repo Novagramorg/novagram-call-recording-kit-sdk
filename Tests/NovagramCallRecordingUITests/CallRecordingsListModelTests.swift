@@ -204,15 +204,19 @@ final class CallRecordingsListModelTests: XCTestCase {
         XCTAssertEqual(CallRecordingTheme(listSideInset: 20).listSideInset, 20)
     }
 
-    func testEmptyStateSaysClickOnTheMacAndTapOnIOS() {
+    // One text on every platform: no device or platform names (App Review) and no "tap" / "click".
+    func testTextsNameNoDeviceOrPlatform() {
         let strings = CallRecordingStrings(languageCode: "en")
-        #if os(macOS)
-        XCTAssertEqual(strings.emptyTextEnabled, "Click Record during a call to save it here.")
-        XCTAssertEqual(strings.emptyText, "Turn on Call recording and click Record during a call.")
-        #else
-        XCTAssertEqual(strings.emptyTextEnabled, "Tap Record during a call to save it here.")
-        XCTAssertEqual(strings.emptyText, "Turn on Call recording and tap Record during a call.")
-        #endif
-        XCTAssertEqual(CallRecordingStrings(languageCode: "ru").emptyTextEnabled, "Нажмите «Запись» во время звонка, и запись появится здесь.")
+        XCTAssertEqual(strings.emptyTextEnabled, "Recordings made with the Record button during a call appear here.")
+        XCTAssertEqual(strings.emptyText, "Turn on Call recording, then use the Record button during a call.")
+        XCTAssertEqual(strings.storageFooter, "Recordings are stored only on this device and are never uploaded.")
+        let forbidden = try! NSRegularExpression(pattern: "\\b(iPhone|iPad|iPod|Mac|macOS|iOS|iPadOS|Apple|Android|tap|click)\\b", options: [.caseInsensitive])
+        for code in ["en", "uz", "ru", "zh"] {
+            let strings = CallRecordingStrings(languageCode: code)
+            let texts = [strings.title, strings.emptyTitle, strings.emptyText, strings.emptyTextEnabled, strings.storageFooter, strings.deleteConfirm, strings.noticeMessage, strings.noticeFailed, strings.summary(2, "1 MB"), strings.filterEmpty(true), strings.filterEmpty(false), strings.clearAllConfirm(2, "1 MB"), strings.clearFilteredConfirm(2, "1 MB", true)]
+            for text in texts {
+                XCTAssertNil(forbidden.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)), "\(code): \(text)")
+            }
+        }
     }
 }

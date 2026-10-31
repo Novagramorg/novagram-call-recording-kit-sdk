@@ -124,3 +124,44 @@ final class CallRecordingSettingsTests: XCTestCase {
         XCTAssertTrue(self.defaults.bool(forKey: "novagram_call_recording_warned"))
     }
 }
+
+final class CallRecordingSettingsStringsTests: XCTestCase {
+    private let languageCodes = ["en", "uz", "ru", "zh"]
+
+    private func texts(_ strings: CallRecordingSettingsStrings) -> [String] {
+        return [strings.title, strings.on, strings.off, strings.recordingHeader, strings.recordTitle, strings.recordFooter, strings.autoTitle, strings.autoFooter, strings.recordingsHeader, strings.recordingsTitle, strings.recordingsFooter, strings.privacyHeader, strings.privacyText]
+    }
+
+    // The privacy paragraph must tell the user exactly what the other person receives.
+    func testPrivacyTextQuotesTheChatMessage() {
+        for code in self.languageCodes {
+            let strings = CallRecordingSettingsStrings(languageCode: code)
+            XCTAssertTrue(strings.privacyText.contains(CallRecordingNoticePolicy.message(languageCode: code)), code)
+        }
+    }
+
+    func testEveryLanguageHasItsOwnText() {
+        let english = self.texts(CallRecordingSettingsStrings(languageCode: "en"))
+        XCTAssertFalse(english.contains(where: { $0.isEmpty }))
+        for code in ["uz", "ru", "zh"] {
+            let texts = self.texts(CallRecordingSettingsStrings(languageCode: code))
+            XCTAssertFalse(texts.contains(where: { $0.isEmpty }), code)
+            // "REC" and the brand stay as they are, so compare whole texts: none may still be the English one.
+            for (text, englishText) in zip(texts, english) {
+                XCTAssertNotEqual(text, englishText, code)
+            }
+        }
+        XCTAssertEqual(CallRecordingSettingsStrings(languageCode: "de").title, "Call recording")
+    }
+
+    // One text on every platform: no device or platform names (App Review) and no "tap" / "click".
+    func testTextsNameNoDeviceOrPlatform() {
+        let forbidden = try! NSRegularExpression(pattern: "\\b(iPhone|iPad|iPod|Mac|macOS|iOS|iPadOS|Apple|Android|tap|click)\\b", options: [.caseInsensitive])
+        for code in self.languageCodes {
+            for text in self.texts(CallRecordingSettingsStrings(languageCode: code)) {
+                XCTAssertNil(forbidden.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)), "\(code): \(text)")
+            }
+        }
+        XCTAssertTrue(CallRecordingSettingsStrings(languageCode: "en").recordingsFooter.contains("on this device"))
+    }
+}

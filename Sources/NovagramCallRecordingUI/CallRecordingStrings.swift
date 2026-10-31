@@ -60,24 +60,18 @@ public struct CallRecordingStrings {
         let pick = language.pick
         self.title = pick("Call recordings", "Qo'ng'iroq yozuvlari", "Записи звонков", "通话录音文件")
         self.emptyTitle = pick("No recordings yet", "Hali yozuvlar yo'q", "Записей пока нет", "还没有录音")
-        // "Tap" on a touch screen, "Click" on the Mac. Only English differs: uz "bosing", ru "нажмите" and zh "点按"
-        // (Apple's own word for a Mac click) fit both.
-        #if os(macOS)
-        let tapWord = "click"
-        #else
-        let tapWord = "tap"
-        #endif
+        // One text for every platform: no device or platform names (App Review) and no "tap" / "click".
         self.emptyText = pick(
-            "Turn on Call recording and \(tapWord) Record during a call.",
-            "«Qo'ng'iroqni yozib olish»ni yoqing va qo'ng'iroq paytida «Yozish»ni bosing.",
-            "Включите «Запись звонков» и нажмите «Запись» во время звонка.",
-            "打开“通话录音”，并在通话中点按“录制”。"
+            "Turn on Call recording, then use the Record button during a call.",
+            "«Qo'ng'iroqni yozib olish»ni yoqing va qo'ng'iroq paytida «Yozish» tugmasidan foydalaning.",
+            "Включите «Запись звонков» и используйте кнопку «Запись» во время звонка.",
+            "打开“通话录音”，然后在通话中使用“录制”按钮。"
         )
         self.emptyTextEnabled = pick(
-            "\(tapWord.capitalized) Record during a call to save it here.",
-            "Qo'ng'iroq paytida «Yozish»ni bosing, yozuv shu yerda saqlanadi.",
-            "Нажмите «Запись» во время звонка, и запись появится здесь.",
-            "在通话中点按“录制”，录音会保存在这里。"
+            "Recordings made with the Record button during a call appear here.",
+            "Qo'ng'iroq paytida «Yozish» tugmasi bilan qilingan yozuvlar shu yerda chiqadi.",
+            "Записи, сделанные кнопкой «Запись» во время звонка, появятся здесь.",
+            "通话中用“录制”按钮录下的录音会显示在这里。"
         )
         self.videoCall = pick("Video call", "Video qo'ng'iroq", "Видеозвонок", "视频通话")
         self.voiceCall = pick("Voice call", "Ovozli qo'ng'iroq", "Аудиозвонок", "语音通话")
@@ -96,21 +90,12 @@ public struct CallRecordingStrings {
         self.clearAll = pick("Clear All", "Hammasini o'chirish", "Удалить все", "全部清除")
         self.today = pick("Today", "Bugun", "Сегодня", "今天")
         self.yesterday = pick("Yesterday", "Kecha", "Вчера", "昨天")
-        #if os(macOS)
         self.storageFooter = pick(
-            "Recordings are stored only on this Mac and are never uploaded.",
-            "Yozuvlar faqat shu Mac'da saqlanadi va hech qayerga yuklanmaydi.",
-            "Записи хранятся только на этом Mac и никуда не загружаются.",
-            "录音只保存在这台 Mac 上，绝不会上传。"
+            "Recordings are stored only on this device and are never uploaded.",
+            "Yozuvlar faqat shu qurilmada saqlanadi va hech qayerga yuklanmaydi.",
+            "Записи хранятся только на этом устройстве и никуда не загружаются.",
+            "录音只保存在此设备上，绝不会上传。"
         )
-        #else
-        self.storageFooter = pick(
-            "Recordings are stored only on this iPhone and are never uploaded.",
-            "Yozuvlar faqat shu iPhone'da saqlanadi va hech qayerga yuklanmaydi.",
-            "Записи хранятся только на этом iPhone и никуда не загружаются.",
-            "录音只保存在这台 iPhone 上，绝不会上传。"
-        )
-        #endif
         self.deleteConfirm = pick("Delete this recording?", "Bu yozuv o'chirilsinmi?", "Удалить эту запись?", "删除这条录音？")
         self.noticeMessage = CallRecordingNoticePolicy.message(languageCode: languageCode)
         self.noticeFailed = CallRecordingNoticePolicy.failureMessage(languageCode: languageCode)
