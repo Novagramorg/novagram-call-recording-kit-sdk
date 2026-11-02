@@ -99,6 +99,9 @@ final class CallRecordingSettingsTests: XCTestCase {
         XCTAssertEqual(CallRecordingSettings.enabledKey, "novagram_call_recording")
         XCTAssertEqual(CallRecordingSettings.autoKey, "novagram_call_recording_auto")
         XCTAssertEqual(CallRecordingSettings.warnedKey, "novagram_call_recording_warned")
+        XCTAssertEqual(CallRecordingSettings.videoQualityKey, "novagram_call_recording_video_quality")
+        // The stored values are shared too.
+        XCTAssertEqual(CallRecordingVideoQuality.allCases.map(\.rawValue), ["audio", "saver", "high"])
     }
 
     func testEverythingIsOffByDefault() {
@@ -123,13 +126,50 @@ final class CallRecordingSettingsTests: XCTestCase {
         settings.wasWarned = true
         XCTAssertTrue(self.defaults.bool(forKey: "novagram_call_recording_warned"))
     }
+
+    // Nothing stored, or a value this version does not know: battery saver.
+    func testVideoQualityDefaultsToBatterySaver() {
+        let settings = CallRecordingSettings(defaults: self.defaults)
+        XCTAssertEqual(settings.videoQuality, .batterySaver)
+        self.defaults.set("ultra", forKey: CallRecordingSettings.videoQualityKey)
+        XCTAssertEqual(settings.videoQuality, .batterySaver)
+    }
+
+    func testVideoQualityIsStored() {
+        let settings = CallRecordingSettings(defaults: self.defaults)
+        for quality in CallRecordingVideoQuality.allCases {
+            settings.videoQuality = quality
+            XCTAssertEqual(settings.videoQuality, quality)
+            XCTAssertEqual(self.defaults.string(forKey: "novagram_call_recording_video_quality"), quality.rawValue)
+        }
+        XCTAssertFalse(CallRecordingVideoQuality.audioOnly.recordsVideo)
+        XCTAssertTrue(CallRecordingVideoQuality.batterySaver.recordsVideo)
+        XCTAssertTrue(CallRecordingVideoQuality.high.recordsVideo)
+    }
+
+    // Battery saver halves the frame rate and the bit rate and keeps the picture size.
+    func testConfigurationForEachQuality() {
+        let high = CallRecordingConfiguration(quality: .high)
+        XCTAssertEqual(high, .standard)
+        XCTAssertEqual(high.framesPerSecond, 30)
+        XCTAssertEqual(high.videoBitRate, 2_500_000)
+        let saver = CallRecordingConfiguration(quality: .batterySaver)
+        XCTAssertEqual(saver.framesPerSecond, 15)
+        XCTAssertEqual(saver.videoBitRate, 1_250_000)
+        XCTAssertEqual(saver.videoSize, high.videoSize)
+        XCTAssertEqual(CallRecordingConfiguration(quality: .audioOnly), .standard)
+        // The tick runs at 30 Hz, so more frames cannot be written.
+        XCTAssertEqual(CallRecordingConfiguration(framesPerSecond: 60).framesPerSecond, 30)
+        XCTAssertEqual(CallRecordingConfiguration(framesPerSecond: 0).framesPerSecond, 1)
+        XCTAssertEqual(CallRecordingConfiguration(videoBitRate: 0).videoBitRate, 100_000)
+    }
 }
 
 final class CallRecordingSettingsStringsTests: XCTestCase {
     private let languageCodes = ["en", "uz", "ru", "zh"]
 
     private func texts(_ strings: CallRecordingSettingsStrings) -> [String] {
-        return [strings.title, strings.on, strings.off, strings.recordingHeader, strings.recordTitle, strings.recordFooter, strings.autoTitle, strings.autoFooter, strings.recordingsHeader, strings.recordingsTitle, strings.recordingsFooter, strings.privacyHeader, strings.privacyText]
+        return [strings.title, strings.on, strings.off, strings.recordingHeader, strings.recordTitle, strings.recordFooter, strings.autoTitle, strings.autoFooter, strings.qualityHeader, strings.qualityAudioOnly, strings.qualityBatterySaver, strings.qualityHigh, strings.qualityFooter, strings.recordingsHeader, strings.recordingsTitle, strings.recordingsFooter, strings.privacyHeader, strings.privacyText]
     }
 
     // The privacy paragraph must tell the user exactly what the other person receives.
@@ -163,5 +203,14 @@ final class CallRecordingSettingsStringsTests: XCTestCase {
             }
         }
         XCTAssertTrue(CallRecordingSettingsStrings(languageCode: "en").recordingsFooter.contains("on this device"))
+    }
+
+    func testEveryQualityHasItsOwnTitle() {
+        for code in self.languageCodes {
+            let strings = CallRecordingSettingsStrings(languageCode: code)
+            let titles = CallRecordingVideoQuality.allCases.map(strings.qualityTitle)
+            XCTAssertEqual(Set(titles).count, CallRecordingVideoQuality.allCases.count, code)
+            XCTAssertEqual(strings.qualityTitle(.batterySaver), strings.qualityBatterySaver, code)
+        }
     }
 }

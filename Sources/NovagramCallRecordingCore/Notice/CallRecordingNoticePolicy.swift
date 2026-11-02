@@ -32,7 +32,7 @@ public struct CallRecordingNoticePolicy: Sendable {
     /// True when the notice must be sent now for this recording start, and marks it as on its way.
     /// - Parameters:
     ///   - isOneToOneUser: the call is a private call with a user (not a group call, not a bot).
-    ///   - recorderDidStart: the recorder started; pass false when ``CallRecordingCenter/start(callId:peerName:onDetach:)`` threw.
+    ///   - recorderDidStart: the recorder started; pass false when ``CallRecordingCenter/start(callId:peerName:configuration:onDetach:)`` threw.
     public mutating func beginSending(callSessionId: UUID, isOneToOneUser: Bool, recorderDidStart: Bool) -> Bool {
         guard isOneToOneUser, recorderDidStart else {
             return false

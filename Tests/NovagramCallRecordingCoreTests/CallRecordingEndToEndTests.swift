@@ -133,7 +133,7 @@ final class CallRecordingEndToEndTests: XCTestCase {
     }
 
     @MainActor
-    private func record(video: VideoFeed) async throws -> URL {
+    private func record(video: VideoFeed, configuration: CallRecordingConfiguration? = nil) async throws -> URL {
         let center = CallRecordingCenter(storage: self.storage)
         let holder = SessionHolder()
         let callId = UUID()
@@ -145,7 +145,7 @@ final class CallRecordingEndToEndTests: XCTestCase {
             observation.cancel()
         }
 
-        let session = try center.start(callId: callId, peerName: "Test: Peer", onDetach: {
+        let session = try center.start(callId: callId, peerName: "Test: Peer", configuration: configuration, onDetach: {
             holder.set(nil)
         })
         holder.set(session)
@@ -273,6 +273,23 @@ final class CallRecordingEndToEndTests: XCTestCase {
         let pip = try XCTUnwrap(self.pixel(image, x: 720 - 24 - 100, y: 24 + 100))
         XCTAssertGreaterThan(Int(pip.0) + Int(pip.1) + Int(pip.2), 120, "picture-in-picture \(pip)")
         XCTAssertLessThan(abs(Int(pip.1) - Int(pip.0)), 20, "our own video is neutral grey: picture-in-picture \(pip)")
+    }
+
+    // Battery saver: frames still come at about 33 fps, the file has half as many.
+    @MainActor
+    func testBatterySaverWritesFifteenFramesPerSecond() async throws {
+        let url = try await self.record(video: .wholeCall, configuration: CallRecordingConfiguration(quality: .batterySaver))
+        let asset = AVURLAsset(url: url)
+        try await CallRecordingEndToEndTests.checkAudioTrack(asset)
+        let tracks = try await asset.loadTracks(withMediaType: .video)
+        let track = try XCTUnwrap(tracks.first)
+        let size = try await track.load(.naturalSize)
+        XCTAssertEqual(size, CGSize(width: 720, height: 1280))
+        let frameRate = try await track.load(.nominalFrameRate)
+        XCTAssertGreaterThan(frameRate, 12)
+        XCTAssertLessThanOrEqual(frameRate, 16)
+        let videoDuration = try await track.load(.timeRange).duration.seconds
+        XCTAssertEqual(videoDuration, CallRecordingEndToEndTests.seconds, accuracy: 0.3)
     }
 
     // A voice recording that gets video halfway (camera turned on): one .mp4 for the whole call, its video track

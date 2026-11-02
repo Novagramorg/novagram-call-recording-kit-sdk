@@ -25,7 +25,7 @@ public final class CallRecordingSession: Sendable {
         self.audioTap = recorder.audioTap
     }
 
-    /// A new picture for one side. Push frames as they come; the recorder composes at up to 30 fps and treats a side
+    /// A new picture for one side. Push frames as they come; the recorder composes at up to the configured frame rate (30 fps at most) and treats a side
     /// with no new frame for 4 seconds as having no video. Both sides are followed for the whole recording, also in
     /// a voice call: the file has video if either side ever had some and is audio-only (`.m4a`) otherwise.
     public func appendVideoFrame(_ frame: CallRecordingVideoFrame, side: CallRecordingVideoSide) {
@@ -74,11 +74,13 @@ public final class CallRecordingCenter: ObservableObject {
     /// Starts recording a call.
     /// - Parameters:
     ///   - peerName: the other person's name; the file is named after it.
+    ///   - configuration: the encoding of this recording (``CallRecordingConfiguration/init(quality:)`` for the
+    ///     user's video quality); nil uses the center's ``configuration``.
     ///   - onDetach: called once when this recording stops (``stop(callId:completion:)``, ``stopAll(timeout:completion:)``
     ///     or the writer failing on its own). Remove your audio tap and video subscriptions there.
     /// - Returns: the session to push audio, video, mute and layout into.
     /// - Throws: ``CallRecordingError/alreadyRecording`` or ``CallRecordingError/writerFailed(_:)``.
-    public func start(callId: UUID, peerName: String, onDetach: (@MainActor () -> Void)? = nil) throws -> CallRecordingSession {
+    public func start(callId: UUID, peerName: String, configuration: CallRecordingConfiguration? = nil, onDetach: (@MainActor () -> Void)? = nil) throws -> CallRecordingSession {
         guard self.recorders[callId] == nil else {
             throw CallRecordingError.alreadyRecording
         }
@@ -89,7 +91,7 @@ public final class CallRecordingCenter: ObservableObject {
         let recorder: CallRecorder
         do {
             try FileManager.default.createDirectory(at: partialFolder, withIntermediateDirectories: true)
-            recorder = try CallRecorder(tempURL: partialFolder.appendingPathComponent(fileName), storage: storage, configuration: self.configuration, onFailure: { [weak self] recorder, error in
+            recorder = try CallRecorder(tempURL: partialFolder.appendingPathComponent(fileName), storage: storage, configuration: configuration ?? self.configuration, onFailure: { [weak self] recorder, error in
                 Task { @MainActor in
                     self?.recorderDidFail(callId: callId, recorder: recorder, error: error)
                 }
@@ -113,7 +115,7 @@ public final class CallRecordingCenter: ObservableObject {
         return self.sessions[callId]
     }
 
-    /// Detaches the host (``start(callId:peerName:onDetach:)``'s `onDetach`), finishes the file and moves it into
+    /// Detaches the host (``start(callId:peerName:configuration:onDetach:)``'s `onDetach`), finishes the file and moves it into
     /// the folder. `completion` runs on the main actor with the file, or ``CallRecordingError/cancelled`` for a call
     /// that is not being recorded (the writer's error if it had failed on its own).
     public func stop(callId: UUID, completion: @escaping @MainActor @Sendable (Result<URL, CallRecordingError>) -> Void) {

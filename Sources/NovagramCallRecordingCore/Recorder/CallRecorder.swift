@@ -7,7 +7,7 @@ import CoreImage
 // Records one call into an AVAssetWriter: one AAC track (both sides mixed) and one H.264 track. Every recording
 // is written as an .mp4, so video turned on in the middle of a voice call is recorded too: while neither side has
 // video the track gets a black frame every half second (almost nothing once compressed), at the first real frame
-// it switches to up to 30 fps. A recording that never had a real frame is exported to an audio-only .m4a at the
+// it switches to the configured frame rate (up to 30 fps). A recording that never had a real frame is exported to an audio-only .m4a at the
 // end (the .mp4 is kept if that export fails). Timeline: the session starts at the first audio chunk (time zero);
 // audio times come from the sample count, video times from the host clock relative to the same start.
 // All writer state lives on `queue`; the audio tap only writes into the two rings, and frames, mute and layout are
@@ -15,13 +15,12 @@ import CoreImage
 @available(macOS 14, iOS 15, *)
 final class CallRecorder: @unchecked Sendable {
     static let sampleRate = CallRecordingAudioMixer.outputSampleRate
-    static let tickInterval: Double = 1.0 / 30.0
+    static let tickInterval: Double = 1.0 / Double(CallRecordingConfiguration.maxFramesPerSecond)
     static let audioBitRate = 128_000
-    static let videoBitRate = 2_500_000
-    static let videoFramesPerSecond = 30
     // While neither side has video: one black frame per this many seconds.
     static let idleVideoFrameInterval: Double = 0.5
-    static let keyFrameInterval = 60
+    // Seconds between key frames, whatever the frame rate.
+    static let keyFrameIntervalSeconds = 2
     static let fragmentInterval: Double = 2.0
     // A playout chunk this much later than the timeline expects means chunks were lost or playout stalled; the
     // hole is filled with the microphone alone so audio stays in sync with the host clock.
@@ -54,6 +53,8 @@ final class CallRecorder: @unchecked Sendable {
     private let adaptor: AVAssetWriterInputPixelBufferAdaptor
     private let audioFormat: CMAudioFormatDescription
     private let canvas: CGRect
+    // Seconds per video frame at the configured rate.
+    private let frameInterval: Double
 
     // Recorder queue.
     private let mixer = CallRecordingAudioMixer()
@@ -91,6 +92,7 @@ final class CallRecorder: @unchecked Sendable {
         self.storage = storage
         self.onFailure = onFailure
         self.canvas = configuration.canvas
+        self.frameInterval = 1.0 / Double(configuration.framesPerSecond)
         self.audioTap = CallRecordingAudioTap(micRing: self.micRing, playoutRing: self.playoutRing)
 
         guard let audioFormat = CallRecorder.makeAudioFormat() else {
@@ -108,7 +110,7 @@ final class CallRecorder: @unchecked Sendable {
 
         let width = Int(configuration.videoSize.width)
         let height = Int(configuration.videoSize.height)
-        let input = AVAssetWriterInput(mediaType: .video, outputSettings: CallRecorder.videoSettings(width: width, height: height))
+        let input = AVAssetWriterInput(mediaType: .video, outputSettings: CallRecorder.videoSettings(width: width, height: height, framesPerSecond: configuration.framesPerSecond, bitRate: configuration.videoBitRate))
         input.expectsMediaDataInRealTime = true
         guard writer.canAdd(input) else {
             throw CallRecordingError.writerFailed("video input")
@@ -147,15 +149,15 @@ final class CallRecorder: @unchecked Sendable {
         self.timer?.cancel()
     }
 
-    private static func videoSettings(width: Int, height: Int) -> [String: Any] {
+    private static func videoSettings(width: Int, height: Int, framesPerSecond: Int, bitRate: Int) -> [String: Any] {
         return [
             AVVideoCodecKey: AVVideoCodecType.h264,
             AVVideoWidthKey: width,
             AVVideoHeightKey: height,
             AVVideoCompressionPropertiesKey: [
-                AVVideoAverageBitRateKey: CallRecorder.videoBitRate,
-                AVVideoExpectedSourceFrameRateKey: CallRecorder.videoFramesPerSecond,
-                AVVideoMaxKeyFrameIntervalKey: CallRecorder.keyFrameInterval,
+                AVVideoAverageBitRateKey: bitRate,
+                AVVideoExpectedSourceFrameRateKey: framesPerSecond,
+                AVVideoMaxKeyFrameIntervalKey: framesPerSecond * CallRecorder.keyFrameIntervalSeconds,
                 // No B-frames: frames arrive with real-time timestamps and are cut into movie fragments; with
                 // reordering, finishWriting failed about one time in four (-11800, underlying -16341).
                 AVVideoAllowFrameReorderingKey: false,
@@ -396,6 +398,11 @@ final class CallRecorder: @unchecked Sendable {
         if self.lastVideoTime.isValid, time <= self.lastVideoTime {
             return
         }
+        // At most the configured frame rate: the tick also drains the audio, so below 30 fps the video skips ticks.
+        // Half a tick of slack, so a late tick does not drop the frame that is due.
+        if self.lastVideoTime.isValid, (time - self.lastVideoTime).seconds < self.frameInterval - CallRecorder.tickInterval / 2 {
+            return
+        }
         let remoteImage = self.currentImage(&self.remote, now: now)
         let localImage = self.currentImage(&self.local, now: now)
         let pixelBuffer: CVPixelBuffer
@@ -510,7 +517,7 @@ final class CallRecorder: @unchecked Sendable {
             self.audioInput.markAsFinished()
             self.videoInput.markAsFinished()
             let audioDuration = Double(self.framesWritten) / Double(CallRecorder.sampleRate)
-            let videoDuration = self.lastVideoTime.isValid ? self.lastVideoTime.seconds + CallRecorder.tickInterval : 0
+            let videoDuration = self.lastVideoTime.isValid ? self.lastVideoTime.seconds + self.frameInterval : 0
             let duration = max(audioDuration, videoDuration)
             self.writer.finishWriting {
                 self.queue.async {

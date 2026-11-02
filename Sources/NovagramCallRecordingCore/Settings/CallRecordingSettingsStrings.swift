@@ -10,6 +10,8 @@ import Foundation
 ///   ``on`` / ``off`` as its value, that opens the page.
 /// - ``recordingHeader``: the ``recordTitle`` switch (``CallRecordingSettings/isEnabled``), ``recordFooter`` under it.
 /// - While it is on: the ``autoTitle`` switch (``CallRecordingSettings/isAutoEnabled``), ``autoFooter`` under it.
+/// - While it is on: ``qualityHeader``, one row per ``CallRecordingVideoQuality`` (``qualityTitle(_:)``, a checkmark on
+///   ``CallRecordingSettings/videoQuality``), ``qualityFooter`` under them (what each choice costs in battery and space).
 /// - ``recordingsHeader``: the ``recordingsTitle`` row (the recording count as its value) that opens the list,
 ///   ``recordingsFooter`` under it. Always shown, so recordings stay reachable after the switch is turned off.
 /// - ``privacyHeader``: the ``privacyText`` paragraph.
@@ -33,6 +35,16 @@ public struct CallRecordingSettingsStrings {
     /// The "Record every call automatically" switch.
     public var autoTitle: String
     public var autoFooter: String
+
+    public var qualityHeader: String
+    /// "Audio only".
+    public var qualityAudioOnly: String
+    /// "Battery saver (15 fps)".
+    public var qualityBatterySaver: String
+    /// "High (30 fps)".
+    public var qualityHigh: String
+    /// What each choice costs in battery and space, and that it applies from the next recording.
+    public var qualityFooter: String
 
     public var recordingsHeader: String
     /// The row that opens the recordings list.
@@ -70,6 +82,17 @@ public struct CallRecordingSettingsStrings {
             "当你的呼叫开始响铃或你接听时，录音会自动开始。如果你停止录音，本次通话中不会再次开始。"
         )
 
+        self.qualityHeader = pick("VIDEO QUALITY", "VIDEO SIFATI", "КАЧЕСТВО ВИДЕО", "视频质量")
+        self.qualityAudioOnly = pick("Audio only", "Faqat ovoz", "Только звук", "仅音频")
+        self.qualityBatterySaver = pick("Battery saver (15 fps)", "Batareyani tejash (15 kadr/s)", "Экономия заряда (15 кадр/с)", "省电（15 帧/秒）")
+        self.qualityHigh = pick("High (30 fps)", "Yuqori sifat (30 kadr/s)", "Высокое (30 кадр/с)", "高画质（30 帧/秒）")
+        self.qualityFooter = pick(
+            "Audio only keeps just the voices, even in a video call: the smallest files and the least battery. Battery saver records video at 15 frames per second: less battery and about half the space of High, and faces and a shared screen stay clear. High records smoother video at 30 frames per second and uses the most battery and space. The choice applies from the next recording.",
+            "«Faqat ovoz» video qo'ng'iroqda ham faqat ovozlarni yozadi: eng kichik fayl va eng kam batareya sarfi. «Batareyani tejash» videoni soniyasiga 15 kadrda yozadi: «Yuqori sifat»ga qaraganda batareya kamroq, joy esa taxminan ikki baravar kam ketadi, yuzlar va ulashilgan ekran aniq ko'rinadi. «Yuqori sifat» videoni soniyasiga 30 kadrda silliqroq yozadi, batareya va joyni eng ko'p sarflaydi. Tanlov keyingi yozuvdan boshlab ishlaydi.",
+            "«Только звук» сохраняет только голоса, даже в видеозвонке: самые маленькие файлы и наименьший расход заряда. «Экономия заряда» записывает видео с частотой 15 кадров в секунду: меньше расход заряда и примерно вдвое меньше места, чем у «Высокого», а лица и показ экрана остаются чёткими. «Высокое» записывает более плавное видео с частотой 30 кадров в секунду и расходует больше всего заряда и места. Выбор действует со следующей записи.",
+            "“仅音频”即使在视频通话中也只保存声音：文件最小，耗电最少。“省电”以每秒 15 帧录制视频：比“高画质”更省电，占用空间约为一半，人脸和共享屏幕依然清晰。“高画质”以每秒 30 帧录制更流畅的视频，耗电和占用空间最多。所选设置从下一次录音开始生效。"
+        )
+
         self.recordingsHeader = pick("RECORDINGS", "YOZUVLAR", "ЗАПИСИ", "录音文件")
         self.recordingsTitle = pick("Call recordings", "Qo'ng'iroq yozuvlari", "Записи звонков", "通话录音文件")
         self.recordingsFooter = pick(
@@ -86,5 +109,17 @@ public struct CallRecordingSettingsStrings {
             "Когда начинается запись, Novagram отправляет в чат «\(notice)», чтобы собеседник знал об этом. Пока идёт запись, значок REC остаётся на экране. Если это сообщение не удаётся отправить, звонок не записывается.",
             "录音开始时，Novagram 会向聊天发送“\(notice)”，让对方知道。录音期间 REC 标记始终显示在屏幕上。如果这条消息无法发送，通话将不会被录制。"
         )
+    }
+
+    /// The row title of one video quality choice.
+    public func qualityTitle(_ quality: CallRecordingVideoQuality) -> String {
+        switch quality {
+        case .audioOnly:
+            return self.qualityAudioOnly
+        case .batterySaver:
+            return self.qualityBatterySaver
+        case .high:
+            return self.qualityHigh
+        }
     }
 }

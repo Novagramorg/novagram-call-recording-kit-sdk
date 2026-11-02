@@ -216,7 +216,7 @@ timeline's clock; push it whenever the call plays sound. The Mac keeps its own m
 **Core**
 
 - `CallRecordingCenter` (`@MainActor`, `ObservableObject`): `init(storage:configuration:)`,
-  `start(callId:peerName:onDetach:) throws -> CallRecordingSession`, `session(callId:)`, `stop(callId:completion:)`,
+  `start(callId:peerName:configuration:onDetach:) throws -> CallRecordingSession`, `session(callId:)`, `stop(callId:completion:)`,
   `stop(callId:) async`, `stopAll(timeout:completion:)`, `setLayout(callId:pipCorner:isSwapped:)`,
   `setMuted(callId:isMuted:)`, `isRecording(callId:)`, `state(callId:)`, `stateUpdates(callId:)`,
   `@Published recordingStartDates`.
@@ -228,17 +228,22 @@ timeline's clock; push it whenever the call plays sound. The Mac keeps its own m
   `mirrorHorizontally`, `mirrorVertically`; `init?(sampleBuffer:)`), `CallRecordingVideoSide`,
   `CallRecordingPipCorner`, `CallRecordingVideoLayout`.
 - `CallRecordingState`, `CallRecordingError` (`writerFailed`, `nothingRecorded`, `cancelled`, `alreadyRecording`),
-  `CallRecordingConfiguration` (`videoSize`).
+  `CallRecordingConfiguration` (`videoSize`, `framesPerSecond` 1...30, `videoBitRate`; `init(quality:)`).
 - `CallRecordingStorage`: `init(directory:)`, `.default`, `defaultDirectory`, `fileName(peerName:date:isVideo:)`,
   `list()`, `delete(_:)`, `recoverInterrupted()`; `CallRecording` (`url`, `date`, `duration`, `isVideo`, `size`,
   `peerName`); `CallRecordingName` (`peerName(fromFileName:)`, `initials(of:)`, `colorIndex(of:count:)`).
 - `CallRecordingSettings`: keys `novagram_call_recording`, `novagram_call_recording_auto`,
   `novagram_call_recording_warned` in the `pro_messager` suite, an injectable `UserDefaults`, `isEnabled` and
-  `isAutoEnabled` (read-write, each is its own key with no second gate), `wasWarned`, `changedNotification`.
+  `isAutoEnabled` (read-write, each is its own key with no second gate), `wasWarned`, `changedNotification`;
+  `videoQuality` (key `novagram_call_recording_video_quality`, default battery saver) with `CallRecordingVideoQuality`
+  (`.audioOnly` = push no video, `.batterySaver` = 15 fps at half the bit rate, `.high` = 30 fps; `recordsVideo`).
+  Start each recording with `configuration: CallRecordingConfiguration(quality: settings.videoQuality)` and push video
+  only when `recordsVideo`.
 - `CallRecordingSettingsStrings(languageCode:)`: every title and explanation of the "Call recording" settings page
   (en, uz, ru, zh; one text on every platform: no device or platform name, no "tap" / "click"). Both apps draw the same page with their own lists, like the Camera
   page in the system Settings: one row in the app's settings (`title`, `on` / `off`) opens it; RECORDING with the
-  switch and `recordFooter`; the auto switch and `autoFooter` while recording is on; RECORDINGS with the list row and
+  switch and `recordFooter`; the auto switch and `autoFooter` while recording is on; VIDEO QUALITY (`qualityHeader`,
+  the three `qualityTitle(_:)` choices with a checkmark, `qualityFooter`) while recording is on; RECORDINGS with the list row and
   `recordingsFooter` (always shown); PRIVACY with `privacyText`, which quotes the chat notice word for word.
 - `CallRecordingNoticePolicy`: `beginSending(callSessionId:isOneToOneUser:recorderDidStart:)`, `markDelivered`,
   `markFailed`, `forget`, `status`, `message(languageCode:)`, `failureMessage(languageCode:)`;
